@@ -1,0 +1,97 @@
+/*shadowystupidcoders dumb 97 line demo sniper */
+import { PublicKey, Keypair, Connection, ComputeBudgetProgram, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
+import * as spl from "@solana/spl-token"
+const connection = new Connection("");
+const ray = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8')
+const wallet = Keypair.fromSecretKey(Uint8Array.from([123, 123, 123, 123]))
+const raydiumFees = new PublicKey("7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5");
+
+snipe()
+
+// 1. listening to the logs from the raydium fee address
+async function snipe() {
+connection.onLogs(raydiumFees, ({ err, logs }) => {
+if (!err) {
+logs.filter(log => log.includes("ray_log")).forEach(async log => {
+const rayLog = log.split(" ").pop().replace("'", "");
+const { market, baseDecimals, quoteDecimals, openTime } = initLog.decode(Buffer.from(rayLog, "base64"));
+const keys = await getKeys(market, baseDecimals, quoteDecimals);
+try {
+const tx = await swap(keys, 1000000, 0);
+console.log("swapped in tx id:", tx)
+} catch(E) { "pool probably wasn't open yet" } }) } } ) }
+
+// 2. getting all the pool keys
+const getAta = async (mint, publicKey) => PublicKey.findProgramAddressSync([publicKey.toBuffer(), spl.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()], spl.ASSOCIATED_TOKEN_PROGRAM_ID)[0];
+export const getKeys = async (marketId, baseDecimals, quoteDecimals) => {
+  const marketInfo = await Market.getLayout(new PublicKey('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX')).decode((await connection.getAccountInfo(marketId)).data);
+  const [baseMint, quoteMint] = [marketInfo.baseMint, marketInfo.quoteMint];
+  const [ownerBaseAta, ownerQuoteAta] = await Promise.all([getAta(baseMint, wallet.publicKey), getAta(quoteMint, wallet.publicKey)]);
+  const authority = PublicKey.findProgramAddressSync([Buffer.from([97, 109, 109, 32, 97, 117, 116, 104, 111, 114, 105, 116, 121])], ray)[0];
+  const marketAuthority = PublicKey.createProgramAddressSync([marketId.toBuffer(), Buffer.from([Number(marketInfo.vaultSignerNonce.toString())]), Buffer.alloc(7)], new PublicKey('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX'));
+  const seeds = ['amm_associated_seed', 'coin_vault_associated_seed', 'pc_vault_associated_seed', 'lp_mint_associated_seed', 'temp_lp_token_associated_seed', 'target_associated_seed', 'withdraw_associated_seed', 'open_order_associated_seed', 'pc_vault_associated_seed'].map(seed => Buffer.from(seed, 'utf-8'));
+  const [id, baseVault, coinVault, lpMint, lpVault, targetOrders, withdrawQueue, openOrders, quoteVault] = await Promise.all(seeds.map(seed => PublicKey.findProgramAddress([ray.toBuffer(), marketId.toBuffer(), seed], ray)));
+  return {
+    programId: ray,
+    baseMint,
+    quoteMint,
+    ownerBaseAta,
+    ownerQuoteAta,
+    baseDecimals,
+    quoteDecimals,
+    tokenProgram: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+    lpDecimals: baseDecimals,
+    authority,
+    marketAuthority,
+    marketProgramId: new PublicKey('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX'),
+    marketId,
+    marketBids: marketInfo.bids,
+    marketAsks: marketInfo.asks,
+    marketQuoteVault: marketInfo.quoteVault,
+    marketBaseVault: marketInfo.baseVault,
+    marketEventQueue: marketInfo.eventQueue,
+    id: id[0],
+    baseVault: baseVault[0],
+    coinVault: coinVault[0],
+    lpMint: lpMint[0],
+    lpVault: lpVault[0],
+    targetOrders: targetOrders[0],
+    withdrawQueue: withdrawQueue[0],
+    openOrders: openOrders[0],
+    quoteVault: quoteVault[0],
+    lookupTableAccount: PublicKey.default,
+    wallet: wallet.publicKey }}
+// 3. build and send the swap transaction
+async function swap(keys, amountIn, minAmountOut) {
+    const accountMetas = [
+	{pubkey: keys.tokenProgram,     isSigner: false, isWritable: false},    // token program
+	{pubkey: keys.id,               isSigner: false, isWritable: true},     // amm/pool id
+	{pubkey: keys.authority,        isSigner: false, isWritable: false},    // amm/pool authority
+	{pubkey: keys.openOrders,       isSigner: false, isWritable: true},     // amm/pool open orders
+	{pubkey: keys.targetOrders,     isSigner: false, isWritable: true},     // amm/pool target orders
+	{pubkey: keys.baseVault,        isSigner: false, isWritable: true},     // amm/pool baseVault/pool coin token account
+	{pubkey: keys.quoteVault,       isSigner: false, isWritable: true},     // amm/pool quoteVault/pool pc token account
+	{pubkey: keys.marketProgramId,  isSigner: false, isWritable: false},    // openbook program id
+	{pubkey: keys.marketId,         isSigner: false, isWritable: true},     // openbook market
+	{pubkey: keys.marketBids,       isSigner: false, isWritable: true},     // openbook bids
+	{pubkey: keys.marketAsks,       isSigner: false, isWritable: true},     // openbook asks
+	{pubkey: keys.marketEventQueue, isSigner: false, isWritable: true},     // openbook event queue
+	{pubkey: keys.marketBaseVault,  isSigner: false, isWritable: true},     // marketBaseVault/openbook coin vault
+	{pubkey: keys.marketQuoteVault, isSigner: false, isWritable: true},     // marketQuoteVault/openbook pc vault
+	{pubkey: keys.marketAuthority,  isSigner: false, isWritable: false},    // marketAuthority/openbook vault signer
+	{pubkey: keys.ownerQuoteAta,    isSigner: false, isWritable: true},     // wallet wsol account
+	{pubkey: keys.ownerBaseAta,     isSigner: false, isWritable: true},     // wallet token account
+	{pubkey: wallet.publicKey,      isSigner: true,  isWritable: true}]     // wallet pubkey
+	const buffer = Buffer.alloc(16);
+	new BN(amountIn).toArrayLike(Buffer, 'le', 8).copy(buffer, 0);
+	new BN(minAmountOut).toArrayLike(Buffer, 'le', 8).copy(buffer, 8);
+	const swap = new TransactionInstruction({ keys: accountMetas, programId: ray, data: Buffer.concat([Buffer.from([0x09]), buffer]) })
+	const uPrice = ComputeBudgetProgram.setComputeUnitPrice({microLamports: 200000})
+	const quoteAta = spl.createAssociatedTokenAccountIdempotentInstruction(wallet.publicKey, keys.ownerQuoteAta, wallet.publicKey, keys.quoteMint)
+	const tokenAta = spl.createAssociatedTokenAccountIdempotentInstruction(wallet.publicKey, keys.ownerBaseAta, wallet.publicKey, keys.baseMint)
+	const closeSol = spl.createCloseAccountInstruction(keys.ownerQuoteAta, wallet.publicKey, wallet.publicKey)
+	const transaction = new Transaction().add(uPrice).add(quoteAta)
+	transaction.add(SystemProgram.transfer({fromPubkey: wallet.publicKey, toPubkey: keys.ownerQuoteAta, lamports: amountIn }), spl.createSyncNativeInstruction(keys.ownerQuoteAta))
+	transaction.add(tokenAta).add(swap).add(closeSol)
+	const txid = await connection.sendTransaction(transaction, [wallet])
+	return(txid) }

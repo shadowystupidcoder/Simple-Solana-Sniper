@@ -19,7 +19,7 @@ const keys = await getKeys(market, baseDecimals, quoteDecimals);
 try {
 const tx = await swap(keys, 1000000, 0);
 console.log("swapped in tx id:", tx)
-} catch(E) { "pool probably wasn't open yet" } }) } } ) }
+} catch(E) { "pool probably wasn't open yet:", openTime, Date.now() } }) } } ) }
 
 // 2. getting all the pool keys
 const getAta = async (mint, publicKey) => PublicKey.findProgramAddressSync([publicKey.toBuffer(), spl.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()], spl.ASSOCIATED_TOKEN_PROGRAM_ID)[0];

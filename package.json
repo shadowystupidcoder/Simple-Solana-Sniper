@@ -1,0 +1,13 @@
+{
+  "name": "shadowystupidcodersdumbdemosniper",
+  "description": "solana raydium pool sniper",
+  "version": "4.6.9",
+  "author": "shadowystupidcoder",
+  "license": "MIT",
+  "scripts": {},
+  "dependencies": {
+    "@solana/spl-token": "^0.3.8",
+    "@solana/web3.js": "^1.89.1",
+  },
+  "devDependencies": {},
+}

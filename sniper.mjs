@@ -1,4 +1,4 @@
-/*shadowystupidcoders dumb 97 line demo sniper */
+/*shadowystupidcoders dumb 120 line demo sniper */
 import { PublicKey, Keypair, Connection, ComputeBudgetProgram, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
 import * as spl from "@solana/spl-token"
 const connection = new Connection("");

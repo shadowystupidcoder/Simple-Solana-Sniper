@@ -28,7 +28,6 @@ async function getMarketInfo(marketId) {
 const info = await connection.getAccountInfo(marketId)
 const ownAddress = new PublicKey(info.data.slice(13, 45))
 const vaultSignerNonce = new NearUInt64().decode(new Uint8Array((info).data.subarray(45, 53)))
-console.log(vaultSignerNonce)
 const baseMint = new PublicKey(info.data.slice(53, 85))
 const quoteMint = new PublicKey(info.data.slice(85, 117))
 const bids = new PublicKey(info.data.slice(285, 317))

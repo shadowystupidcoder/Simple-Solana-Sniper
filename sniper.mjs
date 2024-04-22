@@ -25,7 +25,6 @@ console.log("swapped in tx id:", tx)
 
 async function getKeys(marketId, baseDecimals, quoteDecimals) {
 const getAta = async (mint, publicKey) => PublicKey.findProgramAddressSync([publicKey.toBuffer(), spl.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()], spl.ASSOCIATED_TOKEN_PROGRAM_ID)[0];
-const getKeys = async (marketId, baseDecimals, quoteDecimals) => {
 async function getMarketInfo(marketId) {
 const info = await connection.getAccountInfo(marketId)
 const ownAddress = new PublicKey(info.data.slice(13, 45))

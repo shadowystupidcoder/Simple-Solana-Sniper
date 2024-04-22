@@ -22,6 +22,8 @@ console.log("swapped in tx id:", tx)
 } catch(E) { "pool probably wasn't open yet:", openTime, Date.now() } }) } } ) }
 
 // 2. getting all the pool keys
+
+async function getKeys(marketId, baseDecimals, quoteDecimals) {
 const getAta = async (mint, publicKey) => PublicKey.findProgramAddressSync([publicKey.toBuffer(), spl.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()], spl.ASSOCIATED_TOKEN_PROGRAM_ID)[0];
 const getKeys = async (marketId, baseDecimals, quoteDecimals) => {
 async function getMarketInfo(marketId) {
@@ -54,7 +56,7 @@ const authority = PublicKey.findProgramAddressSync([Buffer.from([97, 109, 109, 3
 const marketAuthority = PublicKey.createProgramAddressSync([marketId.toBuffer(), Buffer.from([Number(marketInfo.vaultSignerNonce.toString())]), Buffer.alloc(7)], new PublicKey('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX'));
 const seeds = ['amm_associated_seed', 'coin_vault_associated_seed', 'pc_vault_associated_seed', 'lp_mint_associated_seed', 'temp_lp_token_associated_seed', 'target_associated_seed', 'withdraw_associated_seed', 'open_order_associated_seed', 'pc_vault_associated_seed'].map(seed => Buffer.from(seed, 'utf-8'));
 const [id, baseVault, coinVault, lpMint, lpVault, targetOrders, withdrawQueue, openOrders, quoteVault] = await Promise.all(seeds.map(seed => PublicKey.findProgramAddress([ray.toBuffer(), marketId.toBuffer(), seed], ray)));
-return {
+return({
     programId: ray,
     baseMint,
     quoteMint,
@@ -83,7 +85,7 @@ return {
     openOrders: openOrders[0],
     quoteVault: quoteVault[0],
     lookupTableAccount: PublicKey.default,
-    wallet: wallet.publicKey }}
+    wallet: wallet.publicKey})}
 // 3. build and send the swap transaction
 async function swap(keys, amountIn, minAmountOut) {
     const accountMetas = [
@@ -116,5 +118,5 @@ async function swap(keys, amountIn, minAmountOut) {
 	const transaction = new Transaction().add(uPrice).add(quoteAta)
 	transaction.add(SystemProgram.transfer({fromPubkey: wallet.publicKey, toPubkey: keys.ownerQuoteAta, lamports: amountIn }), spl.createSyncNativeInstruction(keys.ownerQuoteAta))
 	transaction.add(tokenAta).add(swap).add(closeSol)
-	const txid = await connection.sendTransaction(transaction, [wallet])
+	const txid = await connection.sendTransaction(transaction, [wallet]) }
 	return(txid) }

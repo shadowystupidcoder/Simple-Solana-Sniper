@@ -1,4 +1,4 @@
-/*shadowystupidcoders dumb 140 line demo sniper */
+/*shadowystupidcoders dumb 126 line demo sniper */
 import { PublicKey, Keypair, Connection, ComputeBudgetProgram, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { u8, struct, NearUInt64 } from "@solana/buffer-layout"
 import { u64, publicKey } from "@solana/buffer-layout-utils"
@@ -9,35 +9,21 @@ const ray = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8')
 const wallet = Keypair.fromSecretKey(Uint8Array.from([84,152,1,181,19,93,227,6,144,192,159,16,77,26,147,73,131,228,153,61,41,86,75,247,46,116,132,161,147]))
 const raydiumFees = new PublicKey("7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5");
 const initLog = struct([u8('logType'), u64('openTime'), u8('quoteDecimals'), u8('baseDecimals'), u64('quoteLotSize'), u64('baseLotSize'), u64('quoteAmount'), u64('baseAmount'), publicKey('market') ]);
-
 // 1. listening to the logs from the raydium fee address
 async function snipe() {
 console.log("listening for new raydium pools...")
 connection.onLogs(raydiumFees, async (logs) => {
-console.log(logs.logs)
 for (const log of logs.logs) {
 if (log.includes("ray_log")) {
 const rayLog = log.split(" ").pop().replace("'", "");
-console.log(Buffer.from(rayLog, "base64").length)
 const { market, baseDecimals, quoteDecimals, openTime } = initLog.decode(Buffer.from(rayLog, "base64"));
-console.log(market)
 const keys = await getKeys(market, baseDecimals, quoteDecimals);
-console.log(keys)
 try {
 const tx = await swap(keys, 100000, 0);
-console.log(tx)
-const sent = await connection.sendTransaction(tx, [wallet])
+const sent = await connection.sendTransaction(tx, [wallet], {skipPreflight: true})
 console.log("swapped in tx id:", sent)
-} catch(E) { "pool probably wasn't open yet:", openTime, Date.now() }
-}
-}
-})}
-
-
-
-
+} catch(E) { "pool probably wasn't open yet:", openTime, Date.now() } } } })}
 snipe()
-
 // 2. getting all the pool keys
 async function getKeys(marketId, baseDecimals, quoteDecimals) {
 const getAta = async (mint, publicKey) => PublicKey.findProgramAddressSync([publicKey.toBuffer(), spl.TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()], spl.ASSOCIATED_TOKEN_PROGRAM_ID)[0];

@@ -6,7 +6,7 @@ import * as spl from "@solana/spl-token"
 import BN from 'bn.js'
 const connection = new Connection("https://convincing-crimson-mountain.solana-mainnet.quiknode.pro/6192ef92b88a7967fe5e4dc/")
 const ray = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8')
-const wallet = Keypair.fromSecretKey(Uint8Array.from([84,152,1,181,19,93,227,6,144,192,159,16,77,26,147,73,131,228,153,61,41,86,75,247,46,116,132,161,147]))
+const wallet = Keypair.fromSecretKey(Uint8Array.from([123, 123, 123]))
 const raydiumFees = new PublicKey("7YttLkHDoNj9wyDur5pM1ejNaAvT9X4eqaYcHQqtj2G5");
 const initLog = struct([u8('logType'), u64('openTime'), u8('quoteDecimals'), u8('baseDecimals'), u64('quoteLotSize'), u64('baseLotSize'), u64('quoteAmount'), u64('baseAmount'), publicKey('market') ]);
 // 1. listening to the logs from the raydium fee address
